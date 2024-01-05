@@ -1,8 +1,9 @@
 locals {
-  owner  = "TheLeafVillage"
   yaml_config = yamldecode(file("${path.module}/${var.config_file}"))
   admins      = try(toset(local.yaml_config["admins"]), toset([]))
   settings    = local.yaml_config["settings"]
+  actions_settings = local.yaml_config["actions-settings"]
+    allowed_actions_config = { for item in local.actions_settings["allowed-actions-config"] : keys(item)[0] => values(item)[0] }
 }
 
 
@@ -19,5 +20,5 @@ output "admins" {
 }
 
 output "organization" {
-  value = local.owner
+  value = var.owner
 }

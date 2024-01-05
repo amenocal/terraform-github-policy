@@ -33,3 +33,15 @@ module "organization" {
 
 }
 
+resource "github_actions_organization_permissions" "actions_permissions" {
+  allowed_actions = local.actions_settings["allows-actions"]
+  enabled_repositories = local.actions_settings["repository-policy"]
+  allowed_actions_config {
+    github_owned_allowed = local.allowed_actions_config["github-owned"]
+    patterns_allowed = local.allowed_actions_config["patterns-allowed"]
+    verified_allowed = local.allowed_actions_config["verified-allowed"]
+  }
+  enabled_repositories_config {
+      repository_ids = [for repo in values(data.github_repository.actions_selected_repositories) : repo.repo_id]
+  }
+}
