@@ -1,0 +1,38 @@
+settings:
+  company: TheLandoftheFire
+  email: naruto@theleafvillage.com
+  billing-email: amenocal@github.com
+  location: "Houston, TX"
+  name: "TheLeafVillage"
+  description: ""
+  organization-projects: true
+  repository-projects: true
+  base-permissions: "read"
+  create-repositories: false
+  create-public-repositories: false
+  create-private-repositories: true
+  create-internal-repositories: true
+  create-pages: false
+  create-public-pages: false
+  create-private-pages: false
+  fork-private-repositories: false
+  web-commit-signoff-required: false
+  advanced-security-enabled-for-new-repositories: false
+  dependabot-alerts-enabled-for-new-repositories: false
+  dependabot-security-updates-enabled-for-new-repositories: false
+  dependency-graph-enabled-for-new-repositories: false
+  secret-scanning-enabled-for-new-repositories: false
+  secret-scanning-push-protection-enabled-for-new-repositories: false
+
+admins:
+  - amenocal
+
+actions-settings:
+  allows-actions: all
+  repository-policy: "selected"
+  allowed-actions-config:
+    - github-owned: true
+    - patterns-allowed: ["actions/checkout@*"]
+    - verified-allowed: true
+  enabled-repositories:
+    - my-repo
