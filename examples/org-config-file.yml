@@ -35,4 +35,29 @@ actions-settings:
     - patterns-allowed: ["actions/checkout@*"]
     - verified-allowed: true
   enabled-repositories:
-    - my-repo
+    - admin-ops
+
+rulesets:
+  - name: rule1
+    enforcement: evaluate
+    target: branch
+    rules:
+      branch-name-pattern:
+          name: branchPattern1
+          pattern: .*\/.*
+          operator: regex
+          negate: false
+      commit-message-pattern:
+         name: commitPattern1
+         pattern: releases
+         operator: starts_with
+         negate: false
+  - name: rule2
+    enforcement: evaluate
+    target: branch
+    rules:
+      branch-name-pattern:
+          name: branchPattern1
+          pattern: .*
+          operator: regex
+          negate: false

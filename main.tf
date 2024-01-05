@@ -45,3 +45,59 @@ resource "github_actions_organization_permissions" "actions_permissions" {
       repository_ids = [for repo in values(data.github_repository.actions_selected_repositories) : repo.repo_id]
   }
 }
+
+resource "github_organization_ruleset" "ruleset_settings" {
+  for_each = local.ruleset_settings
+  enforcement = each.value["enforcement"]
+  target = each.value["target"]
+  name = each.value["name"]
+ 
+  rules {
+      dynamic "branch_name_pattern" {
+        for_each = try([each.value.rules["branch-name-pattern"]], [])
+        content {
+        name     = branch_name_pattern.value.name
+        pattern  = branch_name_pattern.value.pattern
+        operator = branch_name_pattern.value.operator
+        negate   = branch_name_pattern.value.negate
+        }
+    }
+    dynamic "commit_message_pattern" {
+      for_each = try([each.value.rules["commit-message-pattern"]], [])
+      content {
+        name     = commit_message_pattern.value.name
+        pattern  = commit_message_pattern.value.pattern
+        operator = commit_message_pattern.value.operator
+        negate   = commit_message_pattern.value.negate
+      }
+    }
+    dynamic "commit_author_email_pattern" {
+      for_each = try([each.value.rules["commit-author-email-pattern"]], [])
+      content {
+        name     = commit_author_email_pattern.value.name
+        pattern  = commit_author_email_pattern.value.pattern
+        operator = commit_author_email_pattern.value.operator
+        negate   = commit_author_email_pattern.value.negate
+      }
+    }
+    dynamic "committer_email_pattern" {
+      for_each = try([each.value.rules["committer-email-pattern"]], [])
+      content {
+        name     = committer_email_pattern.value.name
+        pattern  = committer_email_pattern.value.pattern
+        operator = committer_email_pattern.value.operator
+        negate   = committer_email_pattern.value.negate
+      }
+    }
+    dynamic "pull_request" {
+      for_each = try([each.value.rules["pull-request"]], [])
+      content {
+        dismiss_stale_reviews_on_push = try(pull_request.value.dismiss_stale_reviews_on_push, false)
+        require_code_owner_review = try(pull_request.value.require_code_owner_review, false)
+        require_last_push_approval = try(pull_request.value.require_last_push_approval, false)
+        required_approving_review_count = try(pull_request.value.required_approving_review_count, 0)
+        required_review_thread_resolution = try(pull_request.value.required_review_thread_resolution, false)
+      }
+    }
+  }
+}

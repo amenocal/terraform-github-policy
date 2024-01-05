@@ -4,6 +4,7 @@ locals {
   settings    = local.yaml_config["settings"]
   actions_settings = local.yaml_config["actions-settings"]
     allowed_actions_config = { for item in local.actions_settings["allowed-actions-config"] : keys(item)[0] => values(item)[0] }
+  ruleset_settings = { for ruleset in local.yaml_config["rulesets"]: ruleset.name => ruleset }
 }
 
 
