@@ -1,10 +1,12 @@
 locals {
-  yaml_config = yamldecode(file("${path.module}/${var.config_file}"))
-  admins      = try(toset(local.yaml_config["admins"]), toset([]))
-  settings    = local.yaml_config["settings"]
-  actions_settings = local.yaml_config["actions-settings"]
-    allowed_actions_config = { for item in local.actions_settings["allowed-actions-config"] : keys(item)[0] => values(item)[0] }
-  ruleset_settings = { for ruleset in local.yaml_config["rulesets"]: ruleset.name => ruleset }
+  yaml_config            = yamldecode(file("${path.module}/${var.config_file}"))
+  admins                 = try(toset(local.yaml_config["admins"]), toset([]))
+  settings               = local.yaml_config["settings"]
+  actions_settings       = local.yaml_config["actions-settings"]
+  allowed_actions_config = { for item in local.actions_settings["allowed-actions-config"] : keys(item)[0] => values(item)[0] }
+  ruleset_settings       = { for ruleset in local.yaml_config["rulesets"] : ruleset.name => ruleset }
+  ruleset_teams = flatten([for rs in local.ruleset_settings : [for actor in rs.bypass-actors : actor.actor if actor["actor-type"] == "Team"]])
+  ruleset_github_apps = flatten([for rs in local.ruleset_settings : [for actor in rs.bypass-actors : actor.actor if actor["actor-type"] == "Integration"]])
 }
 
 

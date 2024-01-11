@@ -34,33 +34,45 @@ module "organization" {
 }
 
 resource "github_actions_organization_permissions" "actions_permissions" {
-  allowed_actions = local.actions_settings["allows-actions"]
+  allowed_actions      = local.actions_settings["allows-actions"]
   enabled_repositories = local.actions_settings["repository-policy"]
   allowed_actions_config {
     github_owned_allowed = local.allowed_actions_config["github-owned"]
-    patterns_allowed = local.allowed_actions_config["patterns-allowed"]
-    verified_allowed = local.allowed_actions_config["verified-allowed"]
+    patterns_allowed     = local.allowed_actions_config["patterns-allowed"]
+    verified_allowed     = local.allowed_actions_config["verified-allowed"]
   }
   enabled_repositories_config {
-      repository_ids = [for repo in values(data.github_repository.actions_selected_repositories) : repo.repo_id]
+    repository_ids = [for repo in values(data.github_repository.actions_selected_repositories) : repo.repo_id]
   }
 }
 
 resource "github_organization_ruleset" "ruleset_settings" {
-  for_each = local.ruleset_settings
+  for_each    = local.ruleset_settings
   enforcement = each.value["enforcement"]
-  target = each.value["target"]
-  name = each.value["name"]
- 
+  target      = each.value["target"]
+  name        = each.value["name"]
+
+  dynamic "bypass_actors" {
+    for_each =  each.value["bypass-actors"]
+    content {
+      actor_id    = (bypass_actors.value.actor-type == "OrganizationAdmin" ? 1 
+                    : bypass_actors.value.actor-type == "RepositoryRole" ? 4 
+                    : bypass_actors.value.actor-type == "Team" ? data.github_team.ruleset_teams[bypass_actors.value.actor].id 
+                    : bypass_actors.value.actor-type == "Integration" ? data.github_app.ruleset_apps[bypass_actors.value.actor].id : 0)
+      actor_type  = try(bypass_actors.value.actor-type, "")
+      bypass_mode = try(bypass_actors.value.bypass-mode, "")
+    }
+  }
+
   rules {
-      dynamic "branch_name_pattern" {
-        for_each = try([each.value.rules["branch-name-pattern"]], [])
-        content {
+    dynamic "branch_name_pattern" {
+      for_each = try([each.value.rules["branch-name-pattern"]], [])
+      content {
         name     = branch_name_pattern.value.name
         pattern  = branch_name_pattern.value.pattern
         operator = branch_name_pattern.value.operator
         negate   = branch_name_pattern.value.negate
-        }
+      }
     }
     dynamic "commit_message_pattern" {
       for_each = try([each.value.rules["commit-message-pattern"]], [])
@@ -92,12 +104,13 @@ resource "github_organization_ruleset" "ruleset_settings" {
     dynamic "pull_request" {
       for_each = try([each.value.rules["pull-request"]], [])
       content {
-        dismiss_stale_reviews_on_push = try(pull_request.value.dismiss_stale_reviews_on_push, false)
-        require_code_owner_review = try(pull_request.value.require_code_owner_review, false)
-        require_last_push_approval = try(pull_request.value.require_last_push_approval, false)
-        required_approving_review_count = try(pull_request.value.required_approving_review_count, 0)
+        dismiss_stale_reviews_on_push     = try(pull_request.value.dismiss_stale_reviews_on_push, false)
+        require_code_owner_review         = try(pull_request.value.require_code_owner_review, false)
+        require_last_push_approval        = try(pull_request.value.require_last_push_approval, false)
+        required_approving_review_count   = try(pull_request.value.required_approving_review_count, 0)
         required_review_thread_resolution = try(pull_request.value.required_review_thread_resolution, false)
       }
     }
+
   }
 }
